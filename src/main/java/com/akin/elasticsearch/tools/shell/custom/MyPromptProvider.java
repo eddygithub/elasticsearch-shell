@@ -7,17 +7,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class MyPromptProvider extends DefaultPromptProvider {
+public class MyPromptProvider extends DefaultPromptProvider{
 
 	@Override
 	public String getPrompt() {
 		return "es-shell>";
 	}
 
-	
 	@Override
 	public String getProviderName() {
 		return "ES Shell prompt provider";
 	}
-
 }
