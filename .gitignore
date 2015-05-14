@@ -4,3 +4,5 @@
 .classpath
 bin/
 data/
+*.log
+.gradle/2.3

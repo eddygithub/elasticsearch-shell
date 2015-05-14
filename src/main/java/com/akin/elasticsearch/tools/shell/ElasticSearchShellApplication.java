@@ -18,5 +18,4 @@ public class ElasticSearchShellApplication {
 		shell.promptLoop();
 		shell.waitForComplete();
 	}
-
 }
