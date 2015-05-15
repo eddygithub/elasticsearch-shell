@@ -5,3 +5,4 @@
 bin/
 data/
 .gradle/2.2.1/
+*.log
