@@ -18,8 +18,8 @@ apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management' 
 
 jar {
-    baseName = 'shell'
-    version = '0.0.1-SNAPSHOT'
+    baseName = 'es-shell'
+    version = '0.0.2-SNAPSHOT'
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -31,6 +31,7 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+    compile("org.springframework:spring-web")
     compile("org.springframework.shell:spring-shell:1.1.0.RELEASE")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.5.3")
     testCompile("org.springframework.boot:spring-boot-starter-test") 
