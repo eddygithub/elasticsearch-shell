@@ -1,5 +1,6 @@
 package com.akin.elasticsearch.tools.shell.commands;
 
+import java.net.ConnectException;
 import java.util.Optional;
 
 import org.elasticsearch.action.bulk.BulkProcessor;
@@ -14,9 +15,12 @@ import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.shell.core.CommandMarker;
+import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ESCliOperationCommands implements CommandMarker {
 	
 	private static final String COMMAND_CONNECT_NODE = "connect node";
@@ -25,8 +29,23 @@ public class ESCliOperationCommands implements CommandMarker {
 	private static final String COMMAND_UPDATE_API = "update";
 	private static final String COMMAND_BULK_API = "bulk";
 	private static final String COMMAND_SEARCH_API = "search";
+	private boolean connected = false;
 	
 	private TransportClient client;
+
+	@CliAvailabilityIndicator({COMMAND_CONNECT_NODE})
+	public boolean isSingleCommand(){
+		return true;
+	}
+	
+	@CliAvailabilityIndicator(value={COMMAND_CREATE_API, COMMAND_DELETE_API, COMMAND_UPDATE_API, COMMAND_BULK_API, COMMAND_SEARCH_API})
+	public boolean isComplexCommand(){
+		boolean canExcute = false;
+		if(connected){
+			canExcute = true;
+		}
+		return canExcute;
+	}
 	
 	@CliCommand(value={COMMAND_SEARCH_API})
 	public void search(@CliOption(key="indices") String indices, @CliOption(key="types") String types, @CliOption(key="query") String queryString){
@@ -88,10 +107,20 @@ public class ESCliOperationCommands implements CommandMarker {
 	}
 	
 	@CliCommand(value={COMMAND_CONNECT_NODE})
-	public String connect(@CliOption(key="host-name", specifiedDefaultValue="localhost") String hostName, @CliOption(key="port", specifiedDefaultValue="9300") int port){
-		InetSocketTransportAddress netAdr = new InetSocketTransportAddress(hostName, port);
-		client = new TransportClient();
-		client.addTransportAddress(netAdr);
-		return String.format("You are connect to the elasticsearch cluster at host:%s, port:%d", hostName, port);
+	public String connect(@CliOption(key="host-name", unspecifiedDefaultValue="localhost") String hostName, @CliOption(key="port", unspecifiedDefaultValue="9200") int port){
+		String resultString=null;
+		try{
+			InetSocketTransportAddress netAdr = new InetSocketTransportAddress(hostName, port);
+			client = new TransportClient();
+			client.addTransportAddress(netAdr);
+			connected = true;
+			resultString = String.format("You are connect to the elasticsearch cluster at host:%s, port:%d", hostName, port);
+		}
+		catch(Exception cex){
+			resultString = String.format("Failed! to connect to the elasticsearch cluster at host:%s, port:%d", hostName, port);
+			cex.printStackTrace();
+		}
+		
+		return resultString;
 	}
 }

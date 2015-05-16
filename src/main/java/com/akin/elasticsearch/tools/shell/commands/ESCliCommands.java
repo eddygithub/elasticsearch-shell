@@ -1,9 +1,7 @@
 package com.akin.elasticsearch.tools.shell.commands;
 
 import org.springframework.shell.core.CommandMarker;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ESCliCommands implements CommandMarker{
 
 	//TODO add some conditions
@@ -13,7 +11,10 @@ public class ESCliCommands implements CommandMarker{
 //	}
 	
 	public static void main(String[] args) {
-
+		ESCliAdminCommands adminCommands = new ESCliAdminCommands();
+		adminCommands.startUpNode("es-cluster", "node1");
+		
+		System.out.println("node started");
 	}
 	
 }
