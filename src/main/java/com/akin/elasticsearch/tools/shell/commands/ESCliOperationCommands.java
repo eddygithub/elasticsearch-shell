@@ -56,7 +56,7 @@ public class ESCliOperationCommands implements CommandMarker {
 	}
 	
 	@CliCommand(value={COMMAND_CREATE_API})
-	public void create(@CliOption(key="index-name") String indexName, @CliOption(key="type-name") String typeName, @CliOption(key="id") Optional<String> id, @CliOption(key="json-file") String jsonFile){
+	public void create(@CliOption(key="index-name") String indexName, @CliOption(key="type-name") String typeName, @CliOption(key="id") Optional<String> id, @CliOption(key="json-file", mandatory=true) String jsonFile){
 		if(id.isPresent()){
 			client.prepareIndex(indexName, typeName, id.get()).setSource(jsonFile).execute().actionGet();
 		}
