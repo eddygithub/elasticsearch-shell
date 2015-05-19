@@ -18,6 +18,7 @@ public class ESCliAdminCommands implements CommandMarker {
 
 	private static final String ADMIN_COMMAND_START_NODE = "start node";
 	private static final String ADMIN_COMMAND_STOP_ALL_LOCAL_NODES = "stop local nodes";
+	private static final String ADMIN_COMMAND_STOP_ALL_NODES = "stop all nodes";
 	private static final String ADMIN_COMMAND_STOP_NODES = "stop nodes";
 	private static final String ADMIN_COMMAND_LIST_NODE = "list node";
 	private static final String ADMIN_COMMAND_PRINT_CLUSTER_INFO = "print cluster";
@@ -41,18 +42,24 @@ public class ESCliAdminCommands implements CommandMarker {
 		return commandString;
 	}
 	
-	
 	/**
 	 * only works when your cluster setting doesn't have action.disable_shutdown 
 	 * @param hostName
 	 * @param port
 	 * @param delay
 	 */
-	@CliCommand(value={ADMIN_COMMAND_STOP_ALL_LOCAL_NODES, "quit"})
+	@CliCommand(value={ADMIN_COMMAND_STOP_ALL_LOCAL_NODES})
 	public void stopLocalNodes(@CliOption(key="host-name", unspecifiedDefaultValue="localhost") String hostName, @CliOption(key="port", unspecifiedDefaultValue="9200") int port, 
 			@CliOption(key="delay", unspecifiedDefaultValue="1") int delay){
 		String url = String.format("http://%s:%d/_cluster/nodes/_local/_shutdown?delay=%ds", hostName, port, delay);
 		restTemplate.postForEntity(url, null, String.class);
+	}
+	
+	@CliCommand(value={ADMIN_COMMAND_STOP_ALL_NODES, "quit"})
+	public void stopAllNodes(@CliOption(key="host-name", unspecifiedDefaultValue="localhost") String hostName, @CliOption(key="port", unspecifiedDefaultValue="9200") int port, 
+			@CliOption(key="delay", unspecifiedDefaultValue="1") int delay){
+	//	String url = String.format("http://%s:%d/_cluster/nodes/_all/_shutdown?delay=%ds", hostName, port, delay);
+		restTemplate.postForEntity("http://localhost:9200/_cluster/nodes/_all/_shutdown", null, String.class);
 	}
 	
 	@CliCommand(value={ADMIN_COMMAND_STOP_NODES})

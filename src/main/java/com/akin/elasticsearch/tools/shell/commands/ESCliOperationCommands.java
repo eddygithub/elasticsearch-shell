@@ -1,19 +1,10 @@
 package com.akin.elasticsearch.tools.shell.commands;
 
-import java.net.ConnectException;
-import java.util.Optional;
-
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.unit.ByteSizeUnit;
-import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -24,11 +15,8 @@ import org.springframework.stereotype.Component;
 public class ESCliOperationCommands implements CommandMarker {
 	
 	private static final String COMMAND_CONNECT_NODE = "connect node";
-	private static final String COMMAND_CREATE_API = "create";
+	private static final String COMMAND_INDEX_API = "index";
 	private static final String COMMAND_DELETE_API = "delete";
-	private static final String COMMAND_UPDATE_API = "update";
-	private static final String COMMAND_BULK_API = "bulk";
-	private static final String COMMAND_SEARCH_API = "search";
 	private boolean connected = false;
 	
 	private TransportClient client;
@@ -38,7 +26,7 @@ public class ESCliOperationCommands implements CommandMarker {
 		return true;
 	}
 	
-	@CliAvailabilityIndicator(value={COMMAND_CREATE_API, COMMAND_DELETE_API, COMMAND_UPDATE_API, COMMAND_BULK_API, COMMAND_SEARCH_API})
+	@CliAvailabilityIndicator(value={COMMAND_INDEX_API, COMMAND_DELETE_API})
 	public boolean isComplexCommand(){
 		boolean canExcute = false;
 		if(connected){
@@ -47,72 +35,23 @@ public class ESCliOperationCommands implements CommandMarker {
 		return canExcute;
 	}
 	
-	@CliCommand(value={COMMAND_SEARCH_API})
-	public void search(@CliOption(key="indices") String indices, @CliOption(key="types") String types, @CliOption(key="query") String queryString){
-		SearchResponse response = client.prepareSearch(indices).setTypes(types)
-		.setSearchType(SearchType.DFS_QUERY_AND_FETCH)
-		.setQuery(QueryBuilders.simpleQueryString(queryString)).execute().actionGet();
-		//TODO extract result from the response
+	@CliCommand(value={COMMAND_INDEX_API})
+	public void index(@CliOption(key="index") String index, @CliOption(key="type") String type){
+		IndexRequestBuilder indexRequestBuilder = client.prepareIndex().setIndex(index).setType(type);
+		indexRequestBuilder.execute().actionGet();
 	}
-	
-	@CliCommand(value={COMMAND_CREATE_API})
-	public void create(@CliOption(key="index-name") String indexName, @CliOption(key="type-name") String typeName, @CliOption(key="id") Optional<String> id, @CliOption(key="json-file", mandatory=true) String jsonFile){
-		if(id.isPresent()){
-			client.prepareIndex(indexName, typeName, id.get()).setSource(jsonFile).execute().actionGet();
-		}
-		else{
-			client.prepareIndex(indexName, typeName).setSource(jsonFile).execute().actionGet();
-		}
-	}
-	
+
 	@CliCommand(value={COMMAND_DELETE_API})
 	public void delete(@CliOption(key="index-name") String indexName, @CliOption(key="type-name") String typeName, @CliOption(key="id") String id){
 		client.prepareDelete(indexName, typeName, id).execute().actionGet();
 	}
 	
-	@CliCommand(value={COMMAND_UPDATE_API})
-	public void update(@CliOption(key="index-name") String indexName, @CliOption(key="type-name") String typeName, @CliOption(key="id") String id, @CliOption(key="value") String jsonFile) throws Exception{
-		client.prepareUpdate(indexName, typeName, id).setSource(jsonFile.getBytes()).execute().actionGet();
-	}
-	
-	@CliCommand(value={COMMAND_BULK_API})
-	public void bulk(@CliOption(key="value") String jsonFile) throws Exception{
-		BulkProcessor bulkProcessor = BulkProcessor.builder(client, 
-				new BulkProcessor.Listener() {
-					@Override
-					public void beforeBulk(long executionId, BulkRequest request) {
-						
-					}
-					
-					@Override
-					public void afterBulk(long executionId, BulkRequest request,
-							Throwable failure) {
-						
-					}
-					
-					@Override
-					public void afterBulk(long executionId, BulkRequest request,
-							BulkResponse response) {
-						
-					}
-				})
-				.setBulkActions(1000)
-				.setBulkSize(new ByteSizeValue(1, ByteSizeUnit.GB))
-				.setFlushInterval(TimeValue.timeValueSeconds(5))
-				.setConcurrentRequests(1)
-				.build();
-		
-		//TODO perform bulk actions
-		bulkProcessor.wait(1000);
-	}
-	
 	@CliCommand(value={COMMAND_CONNECT_NODE})
-	public String connect(@CliOption(key="host-name", unspecifiedDefaultValue="localhost") String hostName, @CliOption(key="port", unspecifiedDefaultValue="9200") int port){
+	public String connect(@CliOption(key="host-name", unspecifiedDefaultValue="localhost") String hostName, @CliOption(key="port", unspecifiedDefaultValue="9300") int port){
 		String resultString=null;
 		try{
-			InetSocketTransportAddress netAdr = new InetSocketTransportAddress(hostName, port);
-			client = new TransportClient();
-			client.addTransportAddress(netAdr);
+			Settings settings = ImmutableSettings.settingsBuilder().put("client.transport.sniff", true).build();
+			client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(hostName, port));
 			connected = true;
 			resultString = String.format("You are connect to the elasticsearch cluster at host:%s, port:%d", hostName, port);
 		}
