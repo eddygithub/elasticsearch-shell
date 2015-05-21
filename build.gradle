@@ -30,7 +30,10 @@ repositories {
 
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+	compile("org.elasticsearch:elasticsearch:1.5.0")
+	compile("org.springframework.boot:spring-boot-starter-data-elasticsearch"){
+		exclude module: 'elasticsearch';
+	}
     compile("org.springframework:spring-web")
     compile("org.springframework.shell:spring-shell:1.1.0.RELEASE")
     compile("com.fasterxml.jackson.core:jackson-annotations:2.5.3")

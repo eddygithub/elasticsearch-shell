@@ -1,10 +1,8 @@
 package com.akin.elasticsearch.tools.shell;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 
-@SpringBootApplication
 public class ElasticSearchShellApplication {
 	private static JLineShellComponent shell;
 
