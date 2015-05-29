@@ -44,6 +44,11 @@ public class ESCliOperationCommands implements CommandMarker {
 		return canExcute;
 	}
 	
+	/**
+	 * By default index has 1 replica "number_of_replicas"
+	 * @param indexName
+	 * @return
+	 */
 	@CliCommand(value={COMMAND_INDEX_CREATE})
 	public String index(@CliOption(key="index", mandatory=true) String indexName){
 		String resultStr = "%s! create index:%s";
@@ -82,7 +87,7 @@ public class ESCliOperationCommands implements CommandMarker {
 			if(!StringUtils.isEmpty(nodeName)){
 				props.put(ESCliAdminCommands.NODE_NAME_OPTION, nodeName);
 			}
-			//props.put("client.transport.sniff", "true");
+			props.put("client.transport.sniff", "true");
 			Settings settings = ImmutableSettings.settingsBuilder().put(props).build();
 			client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(hostName, port));
 			connected = true;
